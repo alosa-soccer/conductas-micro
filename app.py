@@ -80,7 +80,7 @@ st.markdown("""
 @st.cache_data
 def cargar_datos():
     # USAMOS RUTA RELATIVA: El archivo debe estar en la misma carpeta que este script
-    nombre_archivo = "conductas_micro.xlsx"
+    nombre_archivo = "./conductas_micro.xlsx"
     
     # Verificamos si el archivo existe para dar un error amigable
     if not os.path.exists(nombre_archivo):
