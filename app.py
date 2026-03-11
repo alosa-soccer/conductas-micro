@@ -78,15 +78,28 @@ st.markdown("""
 # --- CARGA DE DATOS ---
 @st.cache_data
 def cargar_datos():
-    ruta = r"C:\Users\losaa\Downloads\Escritorio\Conductas Micro\conductas_micro.xlsx"
+    # USAMOS RUTA RELATIVA: El archivo debe estar en la misma carpeta que este script
+    nombre_archivo = "conductas_micro.xlsx"
+    
+    # Verificamos si el archivo existe para dar un error amigable
+    if not os.path.exists(nombre_archivo):
+        st.error(f"❌ No se encontró el archivo '{nombre_archivo}' en el repositorio.")
+        return pd.DataFrame()
+
     hojas = ["P1", "P2-P3", "P4-P5", "P6", "P7-P11", "P8", "P10", "P9"]
     lista_df = []
+    
     for hoja in hojas:
         try:
-            df_temp = pd.read_excel(ruta, sheet_name=hoja)
+            # Quitamos la ruta de C:\... y usamos solo el nombre
+            df_temp = pd.read_excel(nombre_archivo, sheet_name=hoja)
             lista_df.append(df_temp)
         except Exception as e:
             st.warning(f"No se pudo leer la hoja {hoja}: {e}")
+            
+    if not lista_df:
+        return pd.DataFrame()
+        
     return pd.concat(lista_df, ignore_index=True)
 
 df_base = cargar_datos()
