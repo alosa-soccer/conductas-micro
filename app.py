@@ -73,6 +73,61 @@ st.markdown("""
         color: white !important;
         border: 2px solid white !important;
     }
+    /* Estilos para los Mini Campos de Zona y Carril */
+    .mini-campo-container {
+        display: flex;
+        gap: 40px;
+        justify-content: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-top: 15px;
+        border: 1px solid #ddd;
+    }
+    .mini-campo {
+        background-color: #2e7d32;
+        border: 2px solid white;
+        display: flex;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    /* Campo de Zonas (Vertical) - Z4 ARRIBA, Z1 ABAJO */
+    .campo-zonas {
+        width: 160px;
+        height: 180px;
+        flex-direction: column; /* Cambiado de column-reverse a column */
+    }
+    .zona-v {
+        flex: 1;
+        border: 1px solid rgba(255,255,255,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    /* Campo de Carriles (Horizontal) */
+    .campo-carriles {
+        width: 160px;
+        height: 180px;
+        flex-direction: row;
+    }
+    .carril-h {
+        border: 1px solid rgba(255,255,255,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+    .carril-lat { flex: 1; } /* Izquierda y Derecha */
+    .carril-cen { flex: 2; } /* Centro más grande */
+    
+    .highlight-red {
+        background-color: #ff4b4b !important;
+        color: white !important;
+    } 
     </style>
 """, unsafe_allow_html=True)
 
@@ -128,12 +183,15 @@ with col_campo:
         with c1: 
             if st.button("P11", use_container_width=True, key="p11", type="primary" if st.session_state.posicion_filtro == "P7-P11" else "secondary"):
                 st.session_state.posicion_filtro = "P7-P11"
+                st.rerun()
         with c3:
             if st.button("P9", use_container_width=True, key="p9", type="primary" if st.session_state.posicion_filtro == "P9" else "secondary"):
                 st.session_state.posicion_filtro = "P9"
+                st.rerun()
         with c5:
             if st.button("P7", use_container_width=True, key="p7", type="primary" if st.session_state.posicion_filtro == "P7-P11" else "secondary"):
                 st.session_state.posicion_filtro = "P7-P11"
+                st.rerun()
 
         # Fila 2: P8 - P10 (Interiores)
         st.write("") 
@@ -141,30 +199,37 @@ with col_campo:
         with c2:
             if st.button("P8", use_container_width=True, key="p8", type="primary" if st.session_state.posicion_filtro == "P8" else "secondary"):
                 st.session_state.posicion_filtro = "P8"
+                st.rerun()
         with c4:
             if st.button("P10", use_container_width=True, key="p10", type="primary" if st.session_state.posicion_filtro == "P10" else "secondary"):
                 st.session_state.posicion_filtro = "P10"
+                st.rerun()
 
         # Fila 3: P6 (Pivote)
         c1, c2, c3, c4, c5 = st.columns(5)
         with c3:
             if st.button("P6", use_container_width=True, key="p6", type="primary" if st.session_state.posicion_filtro == "P6" else "secondary"):
                 st.session_state.posicion_filtro = "P6"
+                st.rerun()
 
         # Fila 4: P3 - P4 - P5 - P2 (Defensa)
         c1, c2, c3, c4, c5 = st.columns(5)
         with c1:
             if st.button("P3", use_container_width=True, key="p3", type="primary" if st.session_state.posicion_filtro == "P2-P3" else "secondary"):
                 st.session_state.posicion_filtro = "P2-P3"
+                st.rerun()
         with c2:
             if st.button("P4", use_container_width=True, key="p4", type="primary" if st.session_state.posicion_filtro == "P4-P5" else "secondary"):
                 st.session_state.posicion_filtro = "P4-P5"
+                st.rerun()
         with c4:
             if st.button("P5", use_container_width=True, key="p5", type="primary" if st.session_state.posicion_filtro == "P4-P5" else "secondary"):
-                st.session_state.posicion_filtro = "P4-P5" # Corregido: P4-P5
+                st.session_state.posicion_filtro = "P4-P5"
+                st.rerun()
         with c5:
             if st.button("P2", use_container_width=True, key="p2", type="primary" if st.session_state.posicion_filtro == "P2-P3" else "secondary"):
                 st.session_state.posicion_filtro = "P2-P3"
+                st.rerun()
 
         # Fila 5: P1 (Portero)
         st.write("") 
@@ -172,6 +237,7 @@ with col_campo:
         with c3:
             if st.button("P1", use_container_width=True, key="p1", type="primary" if st.session_state.posicion_filtro == "P1" else "secondary"):
                 st.session_state.posicion_filtro = "P1"
+                st.rerun()
 
     # Botón de limpiar FUERA del contenedor (recupera el fondo blanco)
     st.write("")
@@ -238,6 +304,29 @@ with col_video:
             st.error(f"⚠️ El clip seleccionado no tiene URL.")
         else:
             st.video(url)
+        
+            zona_activa = str(datos_conducta.get('Zona', '')).upper()
+            carril_activo = str(datos_conducta.get('Carril', '')).upper()
+
+            st.write("📍 **Ubicación de la conducta**")
+            
+            # Nota: Usamos HTML directo sin indentación extra para evitar que Markdown lo escape
+            html_campos = f"""<div class="mini-campo-container">
+<div class="mini-campo campo-zonas">
+<div class="zona-v {'highlight-red' if 'Z4' in zona_activa else ''}">Z4</div>
+<div class="zona-v {'highlight-red' if 'Z3' in zona_activa else ''}">Z3</div>
+<div class="zona-v {'highlight-red' if 'Z2' in zona_activa else ''}">Z2</div>
+<div class="zona-v {'highlight-red' if 'Z1' in zona_activa else ''}">Z1</div>
+</div>
+<div class="mini-campo campo-carriles">
+<div class="carril-h carril-lat {'highlight-red' if carril_activo == 'I' else ''}">I</div>
+<div class="carril-h carril-cen {'highlight-red' if carril_activo == 'C' else ''}">C</div>
+<div class="carril-h carril-lat {'highlight-red' if carril_activo == 'D' else ''}">D</div>
+</div>
+</div>"""
+            
+            st.markdown(html_campos, unsafe_allow_html=True)
+
     else:
         st.info("Selecciona una conducta para reproducir.")
 
