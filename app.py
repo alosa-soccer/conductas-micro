@@ -4,6 +4,36 @@ import os
 
 st.set_page_config(page_title="Conductas Micro", layout="wide")
 
+# --- SISTEMA DE LOGIN ---
+if "autenticado" not in st.session_state:
+    st.session_state.autenticado = False
+
+def check_login():
+    st.container()
+    with st.columns([1, 2, 1])[1]:  # Centra un poco el formulario
+        st.title("🔐 Acceso Privado")
+        st.subheader("Conductas Micro - Levante UD")
+        
+        with st.form("login_form"):
+            usuario_input = st.text_input("Correo electrónico")
+            password_input = st.text_input("Contraseña", type="password")
+            boton_login = st.form_submit_button("Iniciar Sesión", use_container_width=True)
+            
+            if boton_login:
+                # Accedemos a la sección [users] de tu secrets.toml
+                usuarios_registrados = st.secrets["users"]
+                
+                if usuario_input in usuarios_registrados and usuarios_registrados[usuario_input] == password_input:
+                    st.session_state.autenticado = True
+                    st.rerun()
+                else:
+                    st.error("Usuario y/o contraseña incorrectos")
+
+# Control de flujo: Si no está logueado, se muestra el form y se para la ejecución
+if not st.session_state.autenticado:
+    check_login()
+    st.stop()
+
 # --- ESTILO CSS PARA EL CAMPO (Versión Porterías Garantizadas) ---
 st.markdown("""
     <style>
@@ -326,6 +356,44 @@ with col_video:
 </div>"""
             
             st.markdown(html_campos, unsafe_allow_html=True)
+
+            # --- DESPLEGABLE DE INFORMACIÓN OPTIMIZADO ---
+            st.write("") 
+            with st.expander("ℹ️ Información"):
+                # 1. Campos generales
+                campos_principales = {
+                    "Conducta": "Conducta",
+                    "Rol funcional": "Rol funcional",
+                    "Sub-rol": "Sub-rol",
+                    "Intención": "Intención",
+                    "Relación balón": "Relación balón",
+                    "Referencia": "Referencia",
+                    "Comportamiento rival": "Comportamiento rival",
+                    "Recurso Técnico Individual": "Recurso Técnico Individual"
+                }
+
+                for label, col in campos_principales.items():
+                    valor = datos_conducta.get(col, "-")
+                    st.markdown(f"**{label}:** {valor}")
+
+                # 2. Sección de Errores Comunes con formato de lista
+                st.markdown("**Errores comunes:**")
+                
+                # Mapeo de errores para el listado
+                errores = [
+                    {"label": "• No se hace:", "col": "Error común: No se hace"},
+                    {"label": "&nbsp;&nbsp;&nbsp;&nbsp;◦ Impacto:", "col": "Error común: No se hace Impacto"},
+                    {"label": "• Se hace mal:", "col": "Error común: Se hace mal"},
+                    {"label": "&nbsp;&nbsp;&nbsp;&nbsp;◦ Impacto:", "col": "Error común: Se hace mal Impacto"}
+                ]
+
+                for err in errores:
+                    valor_err = datos_conducta.get(err["col"], "-")
+                    # Solo mostramos si hay contenido o para mantener la estructura
+                    if pd.isna(valor_err) or str(valor_err).strip() == "":
+                        valor_err = "-"
+                    st.markdown(f"{err['label']} {valor_err}", unsafe_allow_html=True)
+    
 
     else:
         st.info("Selecciona una conducta para reproducir.")
