@@ -2,11 +2,19 @@ import streamlit as st
 import pandas as pd
 import os
 
-st.set_page_config(page_title="Conductas Micro", layout="wide")
+def set_page(name):
+    st.session_state["pagina_actual"] = name
+    st.rerun()
 
-# --- SISTEMA DE LOGIN ---
+# --- CONFIGURACIÓN Y ESTADO ---
+st.set_page_config(page_title="Conductas Micro - Levante UD", layout="wide")
+
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
+
+# Inicializamos la página actual si no existe
+if "pagina_actual" not in st.session_state:
+    st.session_state.pagina_actual = "Librería"
 
 def check_login():
     st.container()
@@ -190,214 +198,480 @@ def cargar_datos():
 
 df_base = cargar_datos()
 
-# Estado para la posición seleccionada
-if 'posicion_filtro' not in st.session_state:
-    st.session_state.posicion_filtro = None
+def pag_libreria():
+    st.title("Librería de Conductas")
 
-# --- DISEÑO DE INTERFAZ ---
-st.subheader("Filtros globales")
-
-col_campo, col_filtros = st.columns([1.3, 2], gap="large")
-
-
-with col_campo:
-    st.write("📍 **Demarcación**")
-    
-    # Este contenedor es el que recibirá el fondo verde
-    with st.container():
-        # El marcador debe estar aquí dentro para que el CSS funcione
-        st.markdown('<div id="campo-tactico" style="height:0px;"></div>', unsafe_allow_html=True)
-        
-        # Fila 1: P11 - P9 - P7 (Ataque)
-        c1, c2, c3, c4, c5 = st.columns(5)
-        with c1: 
-            if st.button("P11", use_container_width=True, key="p11", type="primary" if st.session_state.posicion_filtro == "P7-P11" else "secondary"):
-                st.session_state.posicion_filtro = "P7-P11"
-                st.rerun()
-        with c3:
-            if st.button("P9", use_container_width=True, key="p9", type="primary" if st.session_state.posicion_filtro == "P9" else "secondary"):
-                st.session_state.posicion_filtro = "P9"
-                st.rerun()
-        with c5:
-            if st.button("P7", use_container_width=True, key="p7", type="primary" if st.session_state.posicion_filtro == "P7-P11" else "secondary"):
-                st.session_state.posicion_filtro = "P7-P11"
-                st.rerun()
-
-        # Fila 2: P8 - P10 (Interiores)
-        st.write("") 
-        c1, c2, c3, c4, c5 = st.columns(5)
-        with c2:
-            if st.button("P8", use_container_width=True, key="p8", type="primary" if st.session_state.posicion_filtro == "P8" else "secondary"):
-                st.session_state.posicion_filtro = "P8"
-                st.rerun()
-        with c4:
-            if st.button("P10", use_container_width=True, key="p10", type="primary" if st.session_state.posicion_filtro == "P10" else "secondary"):
-                st.session_state.posicion_filtro = "P10"
-                st.rerun()
-
-        # Fila 3: P6 (Pivote)
-        c1, c2, c3, c4, c5 = st.columns(5)
-        with c3:
-            if st.button("P6", use_container_width=True, key="p6", type="primary" if st.session_state.posicion_filtro == "P6" else "secondary"):
-                st.session_state.posicion_filtro = "P6"
-                st.rerun()
-
-        # Fila 4: P3 - P4 - P5 - P2 (Defensa)
-        c1, c2, c3, c4, c5 = st.columns(5)
-        with c1:
-            if st.button("P3", use_container_width=True, key="p3", type="primary" if st.session_state.posicion_filtro == "P2-P3" else "secondary"):
-                st.session_state.posicion_filtro = "P2-P3"
-                st.rerun()
-        with c2:
-            if st.button("P4", use_container_width=True, key="p4", type="primary" if st.session_state.posicion_filtro == "P4-P5" else "secondary"):
-                st.session_state.posicion_filtro = "P4-P5"
-                st.rerun()
-        with c4:
-            if st.button("P5", use_container_width=True, key="p5", type="primary" if st.session_state.posicion_filtro == "P4-P5" else "secondary"):
-                st.session_state.posicion_filtro = "P4-P5"
-                st.rerun()
-        with c5:
-            if st.button("P2", use_container_width=True, key="p2", type="primary" if st.session_state.posicion_filtro == "P2-P3" else "secondary"):
-                st.session_state.posicion_filtro = "P2-P3"
-                st.rerun()
-
-        # Fila 5: P1 (Portero)
-        st.write("") 
-        c1, c2, c3, c4, c5 = st.columns(5)
-        with c3:
-            if st.button("P1", use_container_width=True, key="p1", type="primary" if st.session_state.posicion_filtro == "P1" else "secondary"):
-                st.session_state.posicion_filtro = "P1"
-                st.rerun()
-
-    # Botón de limpiar FUERA del contenedor (recupera el fondo blanco)
-    st.write("")
-    if st.button("Limpiar Posición 🔄", use_container_width=True):
+    # Estado para la posición seleccionada
+    if 'posicion_filtro' not in st.session_state:
         st.session_state.posicion_filtro = None
-        st.rerun()
+
+    # --- DISEÑO DE INTERFAZ ---
+    st.subheader("Filtros globales")
+
+    col_campo, col_filtros = st.columns([1.3, 2], gap="large")
 
 
-with col_filtros:
-    # --- CUADRÍCULA DE FILTROS 3x3 ---
-    columnas_filtros = [
-        "Rol funcional", "Momento con o sin balón", "Sub-rol", 
-        "Intención", "Contexto", "Zona", 
-        "Carril", "Relación balón", "Referencia"
-    ]
-    filtros_dict = {}
-
-    # Generamos la rejilla 3x3
-    for row in range(3):
-        cols = st.columns(3)
-        for col_idx in range(3):
-            flat_idx = row * 3 + col_idx
-            if flat_idx < len(columnas_filtros):
-                col_name = columnas_filtros[flat_idx]
-                with cols[col_idx]:
-                    opciones = sorted(df_base[col_name].dropna().unique().tolist())
-                    filtros_dict[col_name] = st.multiselect(col_name, options=opciones, key=f"f_{col_name}")
-
-# --- FILTRADO LÓGICO ---
-df_filtrado = df_base.copy()
-
-# Aplicar filtro de posición si existe
-if st.session_state.posicion_filtro:
-    df_filtrado = df_filtrado[df_filtrado['Demarcación'] == st.session_state.posicion_filtro]
-
-# Aplicar el resto de filtros
-for col, seleccion in filtros_dict.items():
-    if seleccion:
-        df_filtrado = df_filtrado[df_filtrado[col].isin(seleccion)]
-
-# --- LISTADO Y VIDEO ---
-st.divider()
-col_lista, col_video = st.columns([1, 2])
-
-with col_lista:
-    st.subheader(f"Conductas ({len(df_filtrado)})")
-    if df_filtrado.empty:
-        st.info("No hay coincidencias.")
-    else:
-        for conducta in df_filtrado['Conducta'].unique():
-            if st.button(conducta, key=f"btn_{conducta}", use_container_width=True):
-                st.session_state.conducta_activa = conducta
-
-with col_video:
-    if 'conducta_activa' in st.session_state and st.session_state.conducta_activa in df_filtrado['Conducta'].values:
-        conducta_sel = st.session_state.conducta_activa
-        st.subheader(f"Visualizando: {conducta_sel}")
-        datos_conducta = df_filtrado[df_filtrado['Conducta'] == conducta_sel].iloc[0]
+    with col_campo:
+        st.write("📍 **Demarcación**")
         
-        tipo_clip = st.radio("Tipo de clip:", ["Clip OK", "Clip Error", "Clip Tarea"], horizontal=True)
-        url = datos_conducta[tipo_clip]
-        
-        if pd.isna(url) or str(url).strip() == "":
-            st.error(f"⚠️ El clip seleccionado no tiene URL.")
-        else:
-            st.video(url)
-        
-            zona_activa = str(datos_conducta.get('Zona', '')).upper()
-            carril_activo = str(datos_conducta.get('Carril', '')).upper()
-
-            st.write("📍 **Ubicación de la conducta**")
+        # Este contenedor es el que recibirá el fondo verde
+        with st.container():
+            # El marcador debe estar aquí dentro para que el CSS funcione
+            st.markdown('<div id="campo-tactico" style="height:0px;"></div>', unsafe_allow_html=True)
             
-            # Nota: Usamos HTML directo sin indentación extra para evitar que Markdown lo escape
-            html_campos = f"""<div class="mini-campo-container">
-<div class="mini-campo campo-zonas">
-<div class="zona-v {'highlight-red' if 'Z4' in zona_activa else ''}">Z4</div>
-<div class="zona-v {'highlight-red' if 'Z3' in zona_activa else ''}">Z3</div>
-<div class="zona-v {'highlight-red' if 'Z2' in zona_activa else ''}">Z2</div>
-<div class="zona-v {'highlight-red' if 'Z1' in zona_activa else ''}">Z1</div>
-</div>
-<div class="mini-campo campo-carriles">
-<div class="carril-h carril-lat {'highlight-red' if carril_activo == 'I' else ''}">I</div>
-<div class="carril-h carril-cen {'highlight-red' if carril_activo == 'C' else ''}">C</div>
-<div class="carril-h carril-lat {'highlight-red' if carril_activo == 'D' else ''}">D</div>
-</div>
-</div>"""
-            
-            st.markdown(html_campos, unsafe_allow_html=True)
+            # Fila 1: P11 - P9 - P7 (Ataque)
+            c1, c2, c3, c4, c5 = st.columns(5)
+            with c1: 
+                if st.button("P11", use_container_width=True, key="p11", type="primary" if st.session_state.posicion_filtro == "P7-P11" else "secondary"):
+                    st.session_state.posicion_filtro = "P7-P11"
+                    st.rerun()
+            with c3:
+                if st.button("P9", use_container_width=True, key="p9", type="primary" if st.session_state.posicion_filtro == "P9" else "secondary"):
+                    st.session_state.posicion_filtro = "P9"
+                    st.rerun()
+            with c5:
+                if st.button("P7", use_container_width=True, key="p7", type="primary" if st.session_state.posicion_filtro == "P7-P11" else "secondary"):
+                    st.session_state.posicion_filtro = "P7-P11"
+                    st.rerun()
 
-            # --- DESPLEGABLE DE INFORMACIÓN OPTIMIZADO ---
+            # Fila 2: P8 - P10 (Interiores)
             st.write("") 
-            with st.expander("ℹ️ Información"):
-                # 1. Campos generales
-                campos_principales = {
-                    "Conducta": "Conducta",
-                    "Rol funcional": "Rol funcional",
-                    "Sub-rol": "Sub-rol",
-                    "Intención": "Intención",
-                    "Relación balón": "Relación balón",
-                    "Referencia": "Referencia",
-                    "Comportamiento rival": "Comportamiento rival",
-                    "Recurso Técnico Individual": "Recurso Técnico Individual"
-                }
+            c1, c2, c3, c4, c5 = st.columns(5)
+            with c2:
+                if st.button("P8", use_container_width=True, key="p8", type="primary" if st.session_state.posicion_filtro == "P8" else "secondary"):
+                    st.session_state.posicion_filtro = "P8"
+                    st.rerun()
+            with c4:
+                if st.button("P10", use_container_width=True, key="p10", type="primary" if st.session_state.posicion_filtro == "P10" else "secondary"):
+                    st.session_state.posicion_filtro = "P10"
+                    st.rerun()
 
-                for label, col in campos_principales.items():
-                    valor = datos_conducta.get(col, "-")
-                    st.markdown(f"**{label}:** {valor}")
+            # Fila 3: P6 (Pivote)
+            c1, c2, c3, c4, c5 = st.columns(5)
+            with c3:
+                if st.button("P6", use_container_width=True, key="p6", type="primary" if st.session_state.posicion_filtro == "P6" else "secondary"):
+                    st.session_state.posicion_filtro = "P6"
+                    st.rerun()
 
-                # 2. Sección de Errores Comunes con formato de lista
-                st.markdown("**Errores comunes:**")
+            # Fila 4: P3 - P4 - P5 - P2 (Defensa)
+            c1, c2, c3, c4, c5 = st.columns(5)
+            with c1:
+                if st.button("P3", use_container_width=True, key="p3", type="primary" if st.session_state.posicion_filtro == "P2-P3" else "secondary"):
+                    st.session_state.posicion_filtro = "P2-P3"
+                    st.rerun()
+            with c2:
+                if st.button("P4", use_container_width=True, key="p4", type="primary" if st.session_state.posicion_filtro == "P4-P5" else "secondary"):
+                    st.session_state.posicion_filtro = "P4-P5"
+                    st.rerun()
+            with c4:
+                if st.button("P5", use_container_width=True, key="p5", type="primary" if st.session_state.posicion_filtro == "P4-P5" else "secondary"):
+                    st.session_state.posicion_filtro = "P4-P5"
+                    st.rerun()
+            with c5:
+                if st.button("P2", use_container_width=True, key="p2", type="primary" if st.session_state.posicion_filtro == "P2-P3" else "secondary"):
+                    st.session_state.posicion_filtro = "P2-P3"
+                    st.rerun()
+
+            # Fila 5: P1 (Portero)
+            st.write("") 
+            c1, c2, c3, c4, c5 = st.columns(5)
+            with c3:
+                if st.button("P1", use_container_width=True, key="p1", type="primary" if st.session_state.posicion_filtro == "P1" else "secondary"):
+                    st.session_state.posicion_filtro = "P1"
+                    st.rerun()
+
+        # Botón de limpiar FUERA del contenedor (recupera el fondo blanco)
+        st.write("")
+        if st.button("Limpiar Posición 🔄", use_container_width=True):
+            st.session_state.posicion_filtro = None
+            st.rerun()
+
+
+    with col_filtros:
+        # --- CUADRÍCULA DE FILTROS 3x3 ---
+        columnas_filtros = [
+            "Rol funcional", "Momento con o sin balón", "Sub-rol", 
+            "Intención", "Contexto", "Zona", 
+            "Carril", "Relación balón", "Referencia"
+        ]
+        filtros_dict = {}
+
+        # Generamos la rejilla 3x3
+        for row in range(3):
+            cols = st.columns(3)
+            for col_idx in range(3):
+                flat_idx = row * 3 + col_idx
+                if flat_idx < len(columnas_filtros):
+                    col_name = columnas_filtros[flat_idx]
+                    with cols[col_idx]:
+                        opciones = sorted(df_base[col_name].dropna().unique().tolist())
+                        filtros_dict[col_name] = st.multiselect(col_name, options=opciones, key=f"f_{col_name}")
+
+    # --- FILTRADO LÓGICO ---
+    df_filtrado = df_base.copy()
+
+    # Aplicar filtro de posición si existe
+    if st.session_state.posicion_filtro:
+        df_filtrado = df_filtrado[df_filtrado['Demarcación'] == st.session_state.posicion_filtro]
+
+    # Aplicar el resto de filtros
+    for col, seleccion in filtros_dict.items():
+        if seleccion:
+            df_filtrado = df_filtrado[df_filtrado[col].isin(seleccion)]
+
+    # --- LISTADO Y VIDEO ---
+    st.divider()
+    col_lista, col_video = st.columns([1, 2])
+
+    with col_lista:
+        st.subheader(f"Conductas ({len(df_filtrado)})")
+        if df_filtrado.empty:
+            st.info("No hay coincidencias.")
+        else:
+            for conducta in df_filtrado['Conducta'].unique():
+                if st.button(conducta, key=f"btn_{conducta}", use_container_width=True):
+                    st.session_state.conducta_activa = conducta
+
+    with col_video:
+        if 'conducta_activa' in st.session_state and st.session_state.conducta_activa in df_filtrado['Conducta'].values:
+            conducta_sel = st.session_state.conducta_activa
+            st.subheader(f"Visualizando: {conducta_sel}")
+            datos_conducta = df_filtrado[df_filtrado['Conducta'] == conducta_sel].iloc[0]
+            
+            tipo_clip = st.radio("Tipo de clip:", ["Clip OK", "Clip Error", "Clip Tarea"], horizontal=True)
+            url = datos_conducta[tipo_clip]
+            
+            if pd.isna(url) or str(url).strip() == "":
+                st.error(f"⚠️ El clip seleccionado no tiene URL.")
+            else:
+                st.video(url)
+            
+                zona_activa = str(datos_conducta.get('Zona', '')).upper()
+                carril_activo = str(datos_conducta.get('Carril', '')).upper()
+
+                st.write("📍 **Ubicación de la conducta**")
                 
-                # Mapeo de errores para el listado
-                errores = [
-                    {"label": "• No se hace:", "col": "Error común: No se hace"},
-                    {"label": "&nbsp;&nbsp;&nbsp;&nbsp;◦ Impacto:", "col": "Error común: No se hace Impacto"},
-                    {"label": "• Se hace mal:", "col": "Error común: Se hace mal"},
-                    {"label": "&nbsp;&nbsp;&nbsp;&nbsp;◦ Impacto:", "col": "Error común: Se hace mal Impacto"}
-                ]
+                # Nota: Usamos HTML directo sin indentación extra para evitar que Markdown lo escape
+                html_campos = f"""<div class="mini-campo-container">
+    <div class="mini-campo campo-zonas">
+    <div class="zona-v {'highlight-red' if 'Z4' in zona_activa else ''}">Z4</div>
+    <div class="zona-v {'highlight-red' if 'Z3' in zona_activa else ''}">Z3</div>
+    <div class="zona-v {'highlight-red' if 'Z2' in zona_activa else ''}">Z2</div>
+    <div class="zona-v {'highlight-red' if 'Z1' in zona_activa else ''}">Z1</div>
+    </div>
+    <div class="mini-campo campo-carriles">
+    <div class="carril-h carril-lat {'highlight-red' if carril_activo == 'I' else ''}">I</div>
+    <div class="carril-h carril-cen {'highlight-red' if carril_activo == 'C' else ''}">C</div>
+    <div class="carril-h carril-lat {'highlight-red' if carril_activo == 'D' else ''}">D</div>
+    </div>
+    </div>"""
+                
+                st.markdown(html_campos, unsafe_allow_html=True)
 
-                for err in errores:
-                    valor_err = datos_conducta.get(err["col"], "-")
-                    # Solo mostramos si hay contenido o para mantener la estructura
-                    if pd.isna(valor_err) or str(valor_err).strip() == "":
-                        valor_err = "-"
-                    st.markdown(f"{err['label']} {valor_err}", unsafe_allow_html=True)
+                # --- DESPLEGABLE DE INFORMACIÓN OPTIMIZADO ---
+                st.write("") 
+                with st.expander("ℹ️ Información"):
+                    # 1. Campos generales
+                    campos_principales = {
+                        "Conducta": "Conducta",
+                        "Rol funcional": "Rol funcional",
+                        "Sub-rol": "Sub-rol",
+                        "Intención": "Intención",
+                        "Relación balón": "Relación balón",
+                        "Referencia": "Referencia",
+                        "Comportamiento rival": "Comportamiento rival",
+                        "Recurso Técnico Individual": "Recurso Técnico Individual"
+                    }
+
+                    for label, col in campos_principales.items():
+                        valor = datos_conducta.get(col, "-")
+                        st.markdown(f"**{label}:** {valor}")
+
+                    # 2. Sección de Errores Comunes con formato de lista
+                    st.markdown("**Errores comunes:**")
+                    
+                    # Mapeo de errores para el listado
+                    errores = [
+                        {"label": "• No se hace:", "col": "Error común: No se hace"},
+                        {"label": "&nbsp;&nbsp;&nbsp;&nbsp;◦ Impacto:", "col": "Error común: No se hace Impacto"},
+                        {"label": "• Se hace mal:", "col": "Error común: Se hace mal"},
+                        {"label": "&nbsp;&nbsp;&nbsp;&nbsp;◦ Impacto:", "col": "Error común: Se hace mal Impacto"}
+                    ]
+
+                    for err in errores:
+                        valor_err = datos_conducta.get(err["col"], "-")
+                        # Solo mostramos si hay contenido o para mantener la estructura
+                        if pd.isna(valor_err) or str(valor_err).strip() == "":
+                            valor_err = "-"
+                        st.markdown(f"{err['label']} {valor_err}", unsafe_allow_html=True)
+        
+
+        else:
+            st.info("Selecciona una conducta para reproducir.")
+
+    # Debug final
+    with st.expander("🔍 Ver tabla de datos filtrados"):
+        st.dataframe(df_filtrado)
+
+@st.cache_data
+def cargar_layout_doc():
+    nombre_archivo = "documentación.xlsx" # Asegúrate de que el nombre coincida exactamente
+    if not os.path.exists(nombre_archivo):
+        return pd.DataFrame()
+    try:
+        # Leemos la hoja "columnas"
+        return pd.read_excel(nombre_archivo, sheet_name="columnas")
+    except Exception as e:
+        st.error(f"Error al leer la hoja 'columnas': {e}")
+        return pd.DataFrame()
     
+@st.cache_data
+def cargar_contexto_doc():
+    nombre_archivo = "documentación.xlsx"
+    if not os.path.exists(nombre_archivo):
+        return pd.DataFrame()
+    try:
+        # Leemos la hoja "contexto"
+        return pd.read_excel(nombre_archivo, sheet_name="contexto")
+    except Exception as e:
+        st.error(f"Error al leer la hoja 'contexto': {e}")
+        return pd.DataFrame()
 
-    else:
-        st.info("Selecciona una conducta para reproducir.")
+@st.cache_data
+def cargar_recursos_tecnicos():
+    nombre_archivo = "documentación.xlsx"
+    if not os.path.exists(nombre_archivo):
+        return pd.DataFrame()
+    try:
+        # Leemos la hoja "rtci"
+        return pd.read_excel(nombre_archivo, sheet_name="rtci")
+    except Exception as e:
+        st.error(f"Error al leer la hoja 'rtci': {e}")
+        return pd.DataFrame()
+    
+@st.cache_data
+def cargar_elementos_doc():
+    nombre_archivo = "documentación.xlsx"
+    if not os.path.exists(nombre_archivo):
+        return pd.DataFrame()
+    try:
+        # Leemos la hoja "elementos conformadores"
+        return pd.read_excel(nombre_archivo, sheet_name="elementos conformadores")
+    except Exception as e:
+        st.error(f"Error al leer la hoja 'elementos conformadores': {e}")
+        return pd.DataFrame()
+    
+@st.cache_data
+def cargar_organizacion_elementos():
+    nombre_archivo = "documentación.xlsx"
+    if not os.path.exists(nombre_archivo):
+        return pd.DataFrame()
+    try:
+        # Leemos la hoja "ec organizacion"
+        return pd.read_excel(nombre_archivo, sheet_name="ec organizacion")
+    except Exception as e:
+        st.error(f"Error al leer la hoja 'ec organizacion': {e}")
+        return pd.DataFrame()
 
-# Debug final
-with st.expander("🔍 Ver tabla de datos filtrados"):
-    st.dataframe(df_filtrado)
+def pag_data_layout():
+    st.markdown("Estructura y definición de los datos utilizados en el proyecto.")
+    
+    df_layout = cargar_layout_doc()
+    
+    if df_layout.empty:
+        st.warning("No se pudo cargar la información de 'documentación.xlsx'.")
+        return
+
+    # Recorremos cada fila del Excel
+    for _, row in df_layout.iterrows():
+        # Usamos el valor de 'Columna' como titular
+        st.header(f"📍 {row['Columna']}")
+        
+        # Mostramos las preguntas y respuestas
+        st.markdown(f"**¿Qué es?**")
+        st.write(row["¿Qué es?"])
+        
+        st.markdown(f"**¿Para qué sirve?**")
+        st.write(row["¿Para qué sirve?"])
+        
+        st.markdown(f"**¿Cómo se redacta?**")
+        st.write(row["¿Cómo se redacta?"])
+        
+        # El ejemplo lo ponemos en un cuadro azul para que destaque
+        if pd.notna(row["Ejemplo"]):
+            st.info(f"**Ejemplo:** {row['Ejemplo']}")
+        
+        st.divider() # Línea de separación entre filas
+
+def pag_contexto():
+    st.title("🌍 Contexto")
+    
+    # Explicación inicial
+    st.markdown("""
+    En la siguiente página veremos el contexto en el que se produce la conducta micro. 
+    En él podemos distinguir los siguientes conceptos:
+    """)
+    
+    df_contexto = cargar_contexto_doc()
+    
+    if df_contexto.empty:
+        st.warning("No se pudo cargar la información de la hoja 'contexto'.")
+        return
+
+    # Recorremos cada fila del Excel de contexto
+    for _, row in df_contexto.iterrows():
+        # Título: Valor de la columna 'Bloque'
+        st.header(f"📌 {row['Bloque']}")
+        
+        # Cuerpo de la información
+        st.markdown("**¿Qué es?**")
+        st.write(row["¿Qué es?"])
+        
+        st.markdown("**¿Para qué sirve en el proyecto?**")
+        st.write(row["¿Para qué sirve en el proyecto?"])
+        
+        st.markdown("**¿Cómo se redacta?**")
+        st.write(row["¿Cómo se redacta?"])
+        
+        # Ejemplo resaltado
+        if pd.notna(row["Ejemplo"]):
+            st.success(f"**Ejemplo:** {row['Ejemplo']}")
+        
+        st.divider()
+
+def pag_elementos():
+    st.title("🧩 Elementos Conformadores")
+    st.markdown("A continuación se detallan los elementos que conforman y estructuran las conductas micro:")
+    
+    # --- PARTE 1: Elementos Conformadores (Lo que ya tenías) ---
+    df_elementos = cargar_elementos_doc()
+    
+    if not df_elementos.empty:
+        for _, row in df_elementos.iterrows():
+            st.header(f"🔸 {row['Elemento conformador']}")
+            st.markdown(f"**¿Qué es?** \n{row['¿Qué es?']}")
+            st.markdown(f"**¿Qué suele explicar?** \n{row['¿Qué suele explicar?']}")
+            st.markdown(f"**Tipos frecuentes:** \n{row['Tipos frecuentes']}")
+            if pd.notna(row["Ejemplo"]):
+                st.info(f"**Ejemplo:** {row['Ejemplo']}")
+            st.divider()
+    
+    # --- PARTE 2: Organización de Elementos Conformadores (NUEVA SECCIÓN) ---
+    st.write("") # Espacio
+    st.title("🧩 Organización de Elementos Conformadores")
+    st.markdown("Estructura organizativa de los componentes detallados anteriormente:")
+    
+    df_org = cargar_organizacion_elementos()
+    
+    if df_org.empty:
+        st.warning("No se pudo cargar la información de la hoja 'ec organizacion'.")
+        return
+
+    for _, row in df_org.iterrows():
+        # Título: Valor de la columna 'Componente'
+        st.header(f"🔸 {row['Componente']}")
+        
+        # Estructura de preguntas y respuestas
+        st.markdown(f"**¿Qué es?**")
+        st.write(row["¿Qué es?"])
+        
+        st.markdown(f"**¿Qué pregunta responde?**")
+        st.write(row["¿Qué pregunta responde?"])
+        
+        st.markdown(f"**¿Qué incluye habitualmente?**")
+        st.write(row["¿Qué incluye habitualmente?"])
+        
+        # Sección de advertencia (Lo que no debe hacer) en color rojo/naranja
+        st.warning(f"**⚠️ ¿Qué no debe hacer?** \n{row['¿Qué no debe hacer?']}")
+        
+        st.markdown(f"**¿Cómo se redacta?**")
+        st.write(row["¿Cómo se redacta?"])
+        
+        # Ejemplo resaltado
+        if pd.notna(row["Ejemplo"]):
+            st.success(f"**Ejemplo:** {row['Ejemplo']}")
+        
+        st.divider()
+
+def pag_recursos_tecnicos():
+    st.title("⚡ Recursos Técnico-Coordinativos Individuales")
+    
+    # Texto introductorio solicitado
+    st.markdown("A continuación se describen los diferentes tipos de Recursos Técnicos-Coordinativos Individuales:")
+    
+    df_rtci = cargar_recursos_tecnicos()
+    
+    if df_rtci.empty:
+        st.warning("No se pudo cargar la información de la hoja 'rtci'.")
+        return
+
+    # Recorremos cada fila
+    for _, row in df_rtci.iterrows():
+        # Título: Valor de la columna 'Tipo de RTCI'
+        st.header(f"🔹 {row['Tipo de RTCI']}")
+        
+        # Cuerpo de la información
+        st.markdown("**¿Cuándo aplica?**")
+        st.write(row["¿Cuándo aplica?"])
+        
+        st.markdown("**¿Qué incluye?**")
+        st.write(row["¿Qué incluye?"])
+        
+        # El Checklist lo mostramos con un formato especial
+        st.markdown("**Checklist:**")
+        st.info(row["Checklist"])
+        
+        # Ejemplo resaltado
+        if pd.notna(row["Ejemplo"]):
+            st.markdown(f"**Ejemplo:** {row['Ejemplo']}")
+        
+        st.divider()       
+
+def render_sidebar():
+    with st.sidebar:
+        # Escudo centrado y más pequeño
+        if os.path.exists("Levante_Union_Deportiva_Logo.png"):
+            col_izq, col_logo, col_der = st.sidebar.columns([1, 2, 1])
+            with col_logo:
+                st.image("Levante_Union_Deportiva_Logo.png", use_container_width=True)
+        
+        st.divider()
+
+        # 1) Sección Conductas
+        with st.sidebar.expander("⚽ Conductas Micro", expanded=True):
+            if st.button("📊 Librería", use_container_width=True, key="btn_lib"):
+                set_page("Librería")
+
+        # 2) Sección Documentación
+        with st.sidebar.expander("📚 Documentación", expanded=True):
+            if st.button("Data Layout", use_container_width=True):
+                set_page("Data Layout")
+            if st.button("Contexto", use_container_width=True):
+                set_page("Contexto")
+            if st.button("Elementos Conformadores", use_container_width=True):
+                set_page("Elementos Conformadores")
+            if st.button("Recursos Técnicos", use_container_width=True):
+                set_page("Recursos Técnico-Coordinativos Individuales")
+
+        st.sidebar.markdown("---")
+        if st.sidebar.button("Cerrar Sesión", use_container_width=True):
+            st.session_state.autenticado = False
+            st.rerun()
+
+# Ejecutamos la barra lateral
+render_sidebar()
+
+# Control de qué página se muestra
+pagina = st.session_state.get("pagina_actual", "Librería")
+
+if pagina == "Librería":
+    pag_libreria()
+elif pagina == "Data Layout":
+    st.title("📊 Data Layout")
+    pag_data_layout()
+elif pagina == "Contexto":
+    pag_contexto()
+elif pagina == "Elementos Conformadores":
+    pag_elementos()
+elif pagina == "Recursos Técnico-Coordinativos Individuales":
+    pag_recursos_tecnicos()
