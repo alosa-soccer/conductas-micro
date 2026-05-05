@@ -1,4 +1,5 @@
 import streamlit as st
+import re
 import pandas as pd
 import os
 
@@ -290,17 +291,15 @@ def pag_libreria():
     with col_filtros:
         # --- CUADRÍCULA DE FILTROS 3x3 ---
         columnas_filtros = [
-            "Rol funcional", "Momento con o sin balón", "Sub-rol", 
-            "Intención", "Contexto", "Zona", 
-            "Carril", "Relación balón", "Referencia"
-        ]
+            "Momento con o sin balón", "Rol funcional", "Sub-rol", 
+            "Intención"]
         filtros_dict = {}
 
-        # Generamos la rejilla 3x3
-        for row in range(3):
-            cols = st.columns(3)
-            for col_idx in range(3):
-                flat_idx = row * 3 + col_idx
+        # Generamos la rejilla 2x2
+        for row in range(2):
+            cols = st.columns(2)
+            for col_idx in range(2):
+                flat_idx = row * 2 + col_idx
                 if flat_idx < len(columnas_filtros):
                     col_name = columnas_filtros[flat_idx]
                     with cols[col_idx]:
@@ -377,9 +376,11 @@ def pag_libreria():
                         "Rol funcional": "Rol funcional",
                         "Sub-rol": "Sub-rol",
                         "Intención": "Intención",
-                        "Relación balón": "Relación balón",
-                        "Referencia": "Referencia",
-                        "Comportamiento rival": "Comportamiento rival",
+                        "CF/IF": "CF/IF",
+                        "Rival poseedor": "Rival poseedor",
+                        "D": "D",
+                        "V": "V",
+                        "S": "S",
                         "Recurso Técnico Individual": "Recurso Técnico Individual"
                     }
 
@@ -390,20 +391,33 @@ def pag_libreria():
                     # 2. Sección de Errores Comunes con formato de lista
                     st.markdown("**Errores comunes:**")
                     
-                    # Mapeo de errores para el listado
-                    errores = [
-                        {"label": "• No se hace:", "col": "Error común: No se hace"},
-                        {"label": "&nbsp;&nbsp;&nbsp;&nbsp;◦ Impacto:", "col": "Error común: No se hace Impacto"},
-                        {"label": "• Se hace mal:", "col": "Error común: Se hace mal"},
-                        {"label": "&nbsp;&nbsp;&nbsp;&nbsp;◦ Impacto:", "col": "Error común: Se hace mal Impacto"}
-                    ]
+                    columna_objetivo = "Error típico"
+                    col_impacto = "Impacto error"
+                    valor_celda = datos_conducta.get(columna_objetivo, "")
+                    valor_impacto = datos_conducta.get(col_impacto, "-")
 
-                    for err in errores:
-                        valor_err = datos_conducta.get(err["col"], "-")
-                        # Solo mostramos si hay contenido o para mantener la estructura
-                        if pd.isna(valor_err) or str(valor_err).strip() == "":
-                            valor_err = "-"
-                        st.markdown(f"{err['label']} {valor_err}", unsafe_allow_html=True)
+                    # 2. Verificamos que no esté vacío o sea NaN
+                    if pd.isna(valor_celda) or str(valor_celda).strip() == "" or valor_celda == "-":
+                        st.markdown("• Sin errores registrados.")
+                    else:
+                        texto = str(valor_celda)
+                        
+                        match_e1 = re.search(r"E1:(.*?)(?=E2:|$)", texto, re.DOTALL)
+                        match_e2 = re.search(r"E2:(.*)", texto, re.DOTALL)
+
+                        # 4. Mostramos los resultados si existen
+                        if match_e1:
+                            e1_texto = match_e1.group(1).strip()
+                            st.markdown(f"• **Error 1:** {e1_texto}")
+                        
+                        if match_e2:
+                            e2_texto = match_e2.group(1).strip()
+                            st.markdown(f"• **Error 2:** {e2_texto}")
+
+                    if pd.isna(valor_impacto) or str(valor_impacto).strip() == "":
+                        valor_impacto = "-"
+
+                    st.markdown(f"**Impacto:** {valor_impacto}", unsafe_allow_html=True)
         
 
         else:
