@@ -149,7 +149,7 @@ st.markdown("""
     }
     /* Campo de Carriles (Horizontal) */
     .campo-carriles {
-        width: 160px;
+        width: 180px; /* Un poco más ancho para que quepan los 5 */
         height: 180px;
         flex-direction: row;
     }
@@ -159,14 +159,18 @@ st.markdown("""
         align-items: center;
         justify-content: center;
         height: 100%;
+        font-size: 10px;
     }
-    .carril-lat { flex: 1; } /* Izquierda y Derecha */
-    .carril-cen { flex: 2; } /* Centro más grande */
-    
+
+    /* Proporciones de los carriles */
+    .carril-ce { flex: 1.5; } /* Exteriores: tamaño intermedio */
+    .carril-ci { flex: 1; }   /* Interiores: los más estrechos */
+    .carril-cc { flex: 2.5; } /* Central: el más ancho */
+
     .highlight-red {
         background-color: #ff4b4b !important;
         color: white !important;
-    } 
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -348,22 +352,27 @@ def pag_libreria():
                 zona_activa = str(datos_conducta.get('Zona', '')).upper()
                 carril_activo = str(datos_conducta.get('Carril', '')).upper()
 
+                es_ce = "CE" in carril_activo
+                es_ci = "CI" in carril_activo
+                es_cc = "CC" in carril_activo
+
                 st.write("📍 **Ubicación de la conducta**")
                 
-                # Nota: Usamos HTML directo sin indentación extra para evitar que Markdown lo escape
                 html_campos = f"""<div class="mini-campo-container">
     <div class="mini-campo campo-zonas">
-    <div class="zona-v {'highlight-red' if 'Z4' in zona_activa else ''}">Z4</div>
-    <div class="zona-v {'highlight-red' if 'Z3' in zona_activa else ''}">Z3</div>
-    <div class="zona-v {'highlight-red' if 'Z2' in zona_activa else ''}">Z2</div>
-    <div class="zona-v {'highlight-red' if 'Z1' in zona_activa else ''}">Z1</div>
+        <div class="zona-v {'highlight-red' if 'Z4' in zona_activa else ''}">Z4</div>
+        <div class="zona-v {'highlight-red' if 'Z3' in zona_activa else ''}">Z3</div>
+        <div class="zona-v {'highlight-red' if 'Z2' in zona_activa else ''}">Z2</div>
+        <div class="zona-v {'highlight-red' if 'Z1' in zona_activa else ''}">Z1</div>
     </div>
     <div class="mini-campo campo-carriles">
-    <div class="carril-h carril-lat {'highlight-red' if carril_activo == 'I' else ''}">I</div>
-    <div class="carril-h carril-cen {'highlight-red' if carril_activo == 'C' else ''}">C</div>
-    <div class="carril-h carril-lat {'highlight-red' if carril_activo == 'D' else ''}">D</div>
+        <div class="carril-h carril-ce {'highlight-red' if es_ce else ''}">CE</div>
+        <div class="carril-h carril-ci {'highlight-red' if es_ci else ''}">CI</div>
+        <div class="carril-h carril-cc {'highlight-red' if es_cc else ''}">CC</div>
+        <div class="carril-h carril-ci {'highlight-red' if es_ci else ''}">CI</div>
+        <div class="carril-h carril-ce {'highlight-red' if es_ce else ''}">CE</div>
     </div>
-    </div>"""
+</div>"""
                 
                 st.markdown(html_campos, unsafe_allow_html=True)
 
