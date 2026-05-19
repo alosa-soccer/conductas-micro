@@ -331,15 +331,22 @@ def pag_libreria():
         if df_filtrado.empty:
             st.info("No hay coincidencias.")
         else:
-            for conducta in df_filtrado['Conducta'].unique():
-                if st.button(conducta, key=f"btn_{conducta}", use_container_width=True):
-                    st.session_state.conducta_activa = conducta
+            # En lugar de .unique(), iteramos por cada fila real usando su índice (.iterrows)
+            for idx, row in df_filtrado.iterrows():
+                # Usamos el índice 'idx' en la key para que cada botón sea 100% único
+                if st.button(row['Conducta'], key=f"btn_{idx}", use_container_width=True):
+                    # Guardamos el índice numérico de la fila en el session_state
+                    st.session_state.idx_activo = idx
 
     with col_video:
-        if 'conducta_activa' in st.session_state and st.session_state.conducta_activa in df_filtrado['Conducta'].values:
-            conducta_sel = st.session_state.conducta_activa
-            st.subheader(f"Visualizando: {conducta_sel}")
-            datos_conducta = df_filtrado[df_filtrado['Conducta'] == conducta_sel].iloc[0]
+        # Verificamos si hay un índice activo y si ese índice sigue existiendo en el df filtrado
+        if 'idx_activo' in st.session_state and st.session_state.idx_activo in df_filtrado.index:
+            idx_sel = st.session_state.idx_activo
+            
+            # Traemos los datos EXACTOS de esa fila usando .loc[idx_sel] (ya no usamos .iloc[0])
+            datos_conducta = df_filtrado.loc[idx_sel]
+            
+            st.subheader(f"Visualizando: {datos_conducta['Conducta']}")
             
             tipo_clip = st.radio("Tipo de clip:", ["Clip OK", "Clip Error", "Clip Tarea"], horizontal=True)
             url = datos_conducta[tipo_clip]
@@ -347,21 +354,18 @@ def pag_libreria():
             if pd.isna(url) or str(url).strip() == "":
                 st.error(f"⚠️ El clip seleccionado no tiene URL.")
             else:
-                # --- SOLUCIÓN: Limpieza y normalización de la URL ---
                 url_str = str(url).strip()
                 
-                # Si es un link corto (youtu.be), lo convertimos al formato largo estándar
+                # Normalización de la URL (por si acaso)
                 if "youtu.be/" in url_str:
                     video_id = url_str.split("youtu.be/")[1].split("?")[0]
                     url_str = f"https://www.youtube.com/watch?v={video_id}"
                 
-                # Intentamos reproducir el video
+                # Mostramos el video correcto
                 st.video(url_str)
-                
-                # --- SOLUCIÓN: Botón de respaldo por si YouTube bloquea la inserción ---
                 st.link_button("🌐 Ver directamente en YouTube", url_str, use_container_width=True)
                 
-                # El resto de tu código de Zona y Carril...
+                # Tu lógica de Zona y Carril
                 zona_activa = str(datos_conducta.get('Zona', '')).upper()
                 carril_activo = str(datos_conducta.get('Carril', '')).upper()
 
