@@ -433,8 +433,8 @@ def pag_libreria():
             st.info("Selecciona una conducta para reproducir.")
 
     # Debug final
-    with st.expander("🔍 Ver tabla de datos filtrados"):
-        st.dataframe(df_filtrado)
+    #with st.expander("🔍 Ver tabla de datos filtrados"):
+        #st.dataframe(df_filtrado)
 
 @st.cache_data
 def cargar_layout_doc():
