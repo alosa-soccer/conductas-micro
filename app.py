@@ -347,8 +347,21 @@ def pag_libreria():
             if pd.isna(url) or str(url).strip() == "":
                 st.error(f"⚠️ El clip seleccionado no tiene URL.")
             else:
-                st.video(url)
-            
+                # --- SOLUCIÓN: Limpieza y normalización de la URL ---
+                url_str = str(url).strip()
+                
+                # Si es un link corto (youtu.be), lo convertimos al formato largo estándar
+                if "youtu.be/" in url_str:
+                    video_id = url_str.split("youtu.be/")[1].split("?")[0]
+                    url_str = f"https://www.youtube.com/watch?v={video_id}"
+                
+                # Intentamos reproducir el video
+                st.video(url_str)
+                
+                # --- SOLUCIÓN: Botón de respaldo por si YouTube bloquea la inserción ---
+                st.link_button("🌐 Ver directamente en YouTube", url_str, use_container_width=True)
+                
+                # El resto de tu código de Zona y Carril...
                 zona_activa = str(datos_conducta.get('Zona', '')).upper()
                 carril_activo = str(datos_conducta.get('Carril', '')).upper()
 
