@@ -323,6 +323,8 @@ def pag_libreria():
             df_filtrado = df_filtrado[df_filtrado[col].isin(seleccion)]
 
     # --- LISTADO Y VIDEO ---
+    df_filtrado = df_filtrado.reset_index(drop=True)
+
     st.divider()
     col_lista, col_video = st.columns([1, 2])
 
@@ -331,20 +333,22 @@ def pag_libreria():
         if df_filtrado.empty:
             st.info("No hay coincidencias.")
         else:
-            # En lugar de .unique(), iteramos por cada fila real usando su índice (.iterrows)
-            for idx, row in df_filtrado.iterrows():
-                # Usamos el índice 'idx' en la key para que cada botón sea 100% único
-                if st.button(row['Conducta'], key=f"btn_{idx}", use_container_width=True):
-                    # Guardamos el índice numérico de la fila en el session_state
+            # Iteramos usando un rango numérico limpio basado en la cantidad de filas actuales
+            for idx in range(len(df_filtrado)):
+                nombre_conducta = df_filtrado.iloc[idx]['Conducta']
+                
+                # Creamos el botón asegurando una key única por su posición exacta
+                if st.button(nombre_conducta, key=f"btn_{idx}", use_container_width=True):
+                    # Guardamos la posición exacta en el session_state
                     st.session_state.idx_activo = idx
 
     with col_video:
-        # Verificamos si hay un índice activo y si ese índice sigue existiendo en el df filtrado
-        if 'idx_activo' in st.session_state and st.session_state.idx_activo in df_filtrado.index:
+        # Validamos que el índice guardado exista dentro de los límites del df_filtrado actual
+        if 'idx_activo' in st.session_state and st.session_state.idx_activo < len(df_filtrado):
             idx_sel = st.session_state.idx_activo
             
-            # Traemos los datos EXACTOS de esa fila usando .loc[idx_sel] (ya no usamos .iloc[0])
-            datos_conducta = df_filtrado.loc[idx_sel]
+            # Extraemos los datos usando .iloc con la posición guardada de forma segura
+            datos_conducta = df_filtrado.iloc[idx_sel]
             
             st.subheader(f"Visualizando: {datos_conducta['Conducta']}")
             
@@ -356,16 +360,16 @@ def pag_libreria():
             else:
                 url_str = str(url).strip()
                 
-                # Normalización de la URL (por si acaso)
+                # Procesamos la URL de YouTube de forma limpia
                 if "youtu.be/" in url_str:
                     video_id = url_str.split("youtu.be/")[1].split("?")[0]
                     url_str = f"https://www.youtube.com/watch?v={video_id}"
                 
-                # Mostramos el video correcto
+                # Mostramos el reproductor y el botón con la URL real y comprobada
                 st.video(url_str)
                 st.link_button("🌐 Ver directamente en YouTube", url_str, use_container_width=True)
                 
-                # Tu lógica de Zona y Carril
+                # Tu lógica original para Zona y Carril
                 zona_activa = str(datos_conducta.get('Zona', '')).upper()
                 carril_activo = str(datos_conducta.get('Carril', '')).upper()
 
